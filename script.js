@@ -6,14 +6,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const question = item.querySelector('.faq-question');
         
         question.addEventListener('click', () => {
-            // Close other open items
             faqItems.forEach(otherItem => {
                 if (otherItem !== item && otherItem.classList.contains('active')) {
                     otherItem.classList.remove('active');
                 }
             });
             
-            // Toggle current item
             item.classList.toggle('active');
         });
     });
@@ -45,8 +43,49 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ===== Configuration =====
-// ใส่ URL ของ Google Apps Script Web App ที่นี่
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFIKQk6PmpMIEvP-fPXJaq_U4G2YZ4kCGbPPPwP9zK5qHLgbWb_7rh2FCUhodK-bBHIw/exec';
+
+// ===== Helper Functions =====
+function compressBase64Image(base64String, maxSizeKB = 500) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            // ลดขนาดถ้าใหญ่เกินไป
+            const maxDimension = 1920;
+            if (width > maxDimension || height > maxDimension) {
+                if (width > height) {
+                    height = (height / width) * maxDimension;
+                    width = maxDimension;
+                } else {
+                    width = (width / height) * maxDimension;
+                    height = maxDimension;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // ลด quality จนกว่าจะได้ขนาดที่ต้องการ
+            let quality = 0.9;
+            let result = canvas.toDataURL('image/jpeg', quality);
+            
+            while (result.length > maxSizeKB * 1024 && quality > 0.1) {
+                quality -= 0.1;
+                result = canvas.toDataURL('image/jpeg', quality);
+            }
+            
+            resolve(result);
+        };
+        img.onerror = reject;
+        img.src = base64String;
+    });
+}
 
 // ===== Sponsor Form Validation and Features =====
 const sponsorForm = document.getElementById('sponsorForm');
@@ -77,7 +116,7 @@ if (sponsorForm) {
     
     // Logo File Preview
     if (logoFileInput && logoPreview) {
-        logoFileInput.addEventListener('change', function(e) {
+        logoFileInput.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             
             if (file) {
@@ -99,8 +138,25 @@ if (sponsorForm) {
                 
                 const reader = new FileReader();
                 
-                reader.onload = function(e) {
-                    logoFileData = e.target.result;
+                reader.onload = async function(e) {
+                    let fileData = e.target.result;
+                    
+                    // ถ้าเป็นรูปภาพให้บีบอัด
+                    if (file.type.startsWith('image/') && file.size > 500 * 1024) {
+                        try {
+                            Swal.fire({
+                                title: 'กำลังประมวลผลไฟล์...',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                            fileData = await compressBase64Image(fileData, 500);
+                            Swal.close();
+                        } catch (error) {
+                            console.error('Compression error:', error);
+                        }
+                    }
+                    
+                    logoFileData = fileData;
                     
                     // Show preview based on file type
                     if (file.type.startsWith('image/')) {
@@ -108,7 +164,7 @@ if (sponsorForm) {
                             <p style="color: var(--primary-color); font-weight: 600; margin-bottom: 0.5rem;">
                                 ตัวอย่างโลโก้:
                             </p>
-                            <img src="${e.target.result}" alt="โลโก้" style="max-height: 200px;">
+                            <img src="${fileData}" alt="โลโก้" style="max-height: 200px;">
                         `;
                     } else {
                         logoPreview.innerHTML = `
@@ -152,13 +208,9 @@ if (sponsorForm) {
     const packageCards = document.querySelectorAll('.package-card');
     packageCards.forEach(card => {
         card.addEventListener('click', function() {
-            // Remove selection from all cards
             packageCards.forEach(c => c.classList.remove('selected'));
-            
-            // Add selection to clicked card
             this.classList.add('selected');
             
-            // Check the radio button
             const radio = this.querySelector('input[type="radio"]');
             if (radio) {
                 radio.checked = true;
@@ -173,11 +225,10 @@ if (sponsorForm) {
     let slipFileData = null;
     
     if (slipImageInput && imagePreview) {
-        slipImageInput.addEventListener('change', function(e) {
+        slipImageInput.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             
             if (file) {
-                // Check file size (5MB limit)
                 if (file.size > 5 * 1024 * 1024) {
                     Swal.fire({
                         icon: 'error',
@@ -193,37 +244,46 @@ if (sponsorForm) {
                     return;
                 }
                 
-                // Show preview for images
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
+                const reader = new FileReader();
+                
+                reader.onload = async function(e) {
+                    let fileData = e.target.result;
                     
-                    reader.onload = function(e) {
-                        slipFileData = e.target.result; // เก็บ Base64 data
+                    // ถ้าเป็นรูปภาพให้บีบอัด
+                    if (file.type.startsWith('image/') && file.size > 500 * 1024) {
+                        try {
+                            Swal.fire({
+                                title: 'กำลังประมวลผลไฟล์...',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                            fileData = await compressBase64Image(fileData, 500);
+                            Swal.close();
+                        } catch (error) {
+                            console.error('Compression error:', error);
+                        }
+                    }
+                    
+                    slipFileData = fileData;
+                    
+                    if (file.type.startsWith('image/')) {
                         imagePreview.innerHTML = `
                             <p style="color: var(--primary-color); font-weight: 600; margin-bottom: 0.5rem;">
                                 ตัวอย่างสลิปที่แนบ:
                             </p>
-                            <img src="${e.target.result}" alt="สลิปการโอนเงิน">
+                            <img src="${fileData}" alt="สลิปการโอนเงิน">
                         `;
-                        imagePreview.classList.add('show');
-                    };
-                    
-                    reader.readAsDataURL(file);
-                } else if (file.type === 'application/pdf') {
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        slipFileData = e.target.result; // เก็บ Base64 data
+                    } else if (file.type === 'application/pdf') {
                         imagePreview.innerHTML = `
                             <p style="color: var(--primary-color); font-weight: 600;">
                                 ✓ ไฟล์ PDF: ${file.name}
                             </p>
                         `;
-                        imagePreview.classList.add('show');
-                    };
-                    
-                    reader.readAsDataURL(file);
-                }
+                    }
+                    imagePreview.classList.add('show');
+                };
+                
+                reader.readAsDataURL(file);
             } else {
                 imagePreview.innerHTML = '';
                 imagePreview.classList.remove('show');
@@ -236,7 +296,6 @@ if (sponsorForm) {
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function(e) {
-            // Allow only numbers and dash
             this.value = this.value.replace(/[^0-9-]/g, '');
         });
     }
@@ -394,7 +453,7 @@ if (sponsorForm) {
                 // Show loading
                 Swal.fire({
                     title: 'กำลังส่งข้อมูล...',
-                    html: 'กรุณารอสักครู่',
+                    html: 'กรุณารอสักครู่ (อาจใช้เวลา 10-30 วินาที)',
                     allowOutsideClick: false,
                     didOpen: () => {
                         Swal.showLoading();
@@ -410,17 +469,22 @@ if (sponsorForm) {
                     contactName: contactName,
                     phone: phone,
                     email: email,
-                    transferDate: document.getElementById('transferDate') ? document.getElementById('transferDate').value : '',
-                    logoOption: selectedLogoOption.value, // เพิ่ม logo option
-                    logoFile: logoFileData, // Base64 encoded logo file (ถ้ามี)
-                    slipFile: slipFileData, // Base64 encoded slip file
+                    logoOption: selectedLogoOption.value,
+                    logoFile: logoFileData,
+                    slipFile: slipFileData,
                     timestamp: new Date().toISOString()
                 };
+                
+                console.log('Sending data...', {
+                    ...formData,
+                    logoFile: logoFileData ? 'File attached' : 'No file',
+                    slipFile: slipFileData ? 'File attached' : 'No file'
+                });
                 
                 // ส่งข้อมูลไปยัง Google Apps Script
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // สำคัญ! เพื่อให้ทำงานกับ Google Apps Script
+                    mode: 'no-cors', // สำคัญ! เพื่อหลีกเลี่ยง CORS error
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -428,7 +492,8 @@ if (sponsorForm) {
                 })
                 .then(() => {
                     // เนื่องจากใช้ no-cors จะไม่ได้ response กลับมา
-                    // แต่ถือว่าส่งสำเร็จ
+                    console.log('Data sent successfully (no-cors mode)');
+                    
                     Swal.fire({
                         icon: 'success',
                         title: 'ส่งข้อมูลสำเร็จ!',
@@ -447,7 +512,10 @@ if (sponsorForm) {
                         packageCards.forEach(c => c.classList.remove('selected'));
                         imagePreview.innerHTML = '';
                         imagePreview.classList.remove('show');
+                        logoPreview.innerHTML = '';
+                        logoPreview.classList.remove('show');
                         slipFileData = null;
+                        logoFileData = null;
                         
                         // Clear localStorage
                         const formInputs = sponsorForm.querySelectorAll('input:not([type="file"]):not([type="checkbox"]):not([type="radio"]), select, textarea');
@@ -467,7 +535,11 @@ if (sponsorForm) {
                     Swal.fire({
                         icon: 'error',
                         title: 'เกิดข้อผิดพลาด',
-                        text: 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                        html: `
+                            <p>ไม่สามารถส่งข้อมูลได้</p>
+                            <p style="font-size: 0.9rem; color: #666;">Error: ${error.message}</p>
+                            <p style="font-size: 0.9rem; margin-top: 1rem;">กรุณาลองใหม่อีกครั้ง หรือติดต่อทีมงาน</p>
+                        `,
                         confirmButtonText: 'ตกลง',
                         confirmButtonColor: '#2d6a5f'
                     });
@@ -482,7 +554,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
         
-        // Skip if it's just "#"
         if (href === '#') {
             e.preventDefault();
             return;
@@ -506,23 +577,19 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // ===== Auto-save Form Data to LocalStorage =====
 if (sponsorForm) {
-    // Save form data on input
     const formInputs = sponsorForm.querySelectorAll('input:not([type="file"]):not([type="checkbox"]):not([type="radio"]), select, textarea');
     
     formInputs.forEach(input => {
-        // Load saved data on page load
         const savedValue = localStorage.getItem(`kpi_sponsor_${input.id}`);
         if (savedValue && input.value === '') {
             input.value = savedValue;
         }
         
-        // Save data on change
         input.addEventListener('change', function() {
             localStorage.setItem(`kpi_sponsor_${input.id}`, this.value);
         });
     });
     
-    // Save and restore package selection
     const savedPackage = localStorage.getItem('kpi_sponsor_package');
     if (savedPackage) {
         const radio = document.querySelector(`input[name="package"][value="${savedPackage}"]`);
@@ -540,15 +607,5 @@ if (sponsorForm) {
                 localStorage.setItem('kpi_sponsor_package', this.value);
             }
         });
-    });
-}
-
-// ===== Mobile Menu Toggle (for future implementation) =====
-const menuToggle = document.querySelector('.menu-toggle');
-const nav = document.querySelector('.nav');
-
-if (menuToggle && nav) {
-    menuToggle.addEventListener('click', function() {
-        nav.classList.toggle('active');
     });
 }
