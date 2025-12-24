@@ -19,190 +19,302 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// ===== Form Validation and Image Preview =====
-const donateForm = document.getElementById('donateForm');
-
-if (donateForm) {
-    // Image Preview
-    const slipImageInput = document.getElementById('slipImage');
-    const imagePreview = document.getElementById('imagePreview');
+// ===== Lazy Loading Images =====
+document.addEventListener('DOMContentLoaded', function() {
+    const lazyImages = document.querySelectorAll('.lazy-image');
     
-    slipImageInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        
-        if (file) {
-            // Check file size (5MB limit)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('ไฟล์มีขนาดใหญ่เกิน 5 MB กรุณาเลือกไฟล์ใหม่');
-                this.value = '';
-                imagePreview.innerHTML = '';
-                imagePreview.classList.remove('show');
-                return;
-            }
-            
-            // Show preview for images
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                const src = img.getAttribute('data-src');
                 
-                reader.onload = function(e) {
-                    imagePreview.innerHTML = `
-                        <p style="color: var(--primary-color); font-weight: 600; margin-bottom: 0.5rem;">
-                            ตัวอย่างสลิปที่แนบ:
-                        </p>
-                        <img src="${e.target.result}" alt="สลิปการโอนเงิน">
-                    `;
-                    imagePreview.classList.add('show');
-                };
-                
-                reader.readAsDataURL(file);
-            } else if (file.type === 'application/pdf') {
-                imagePreview.innerHTML = `
-                    <p style="color: var(--primary-color); font-weight: 600;">
-                        ✓ ไฟล์ PDF: ${file.name}
-                    </p>
-                `;
-                imagePreview.classList.add('show');
+                if (src) {
+                    img.src = src;
+                    img.onload = () => {
+                        img.parentElement.classList.remove('lazy-loading');
+                        img.parentElement.classList.add('lazy-loaded');
+                    };
+                    observer.unobserve(img);
+                }
             }
-        } else {
-            imagePreview.innerHTML = '';
-            imagePreview.classList.remove('show');
-        }
-    });
-    
-    // ID Card Validation
-    const idCardInput = document.getElementById('idCard');
-    idCardInput.addEventListener('input', function(e) {
-        // Allow only numbers
-        this.value = this.value.replace(/[^0-9]/g, '');
-        
-        // Limit to 13 digits
-        if (this.value.length > 13) {
-            this.value = this.value.slice(0, 13);
-        }
-    });
-    
-    // Phone Number Validation
-    const phoneInputs = document.querySelectorAll('input[type="tel"]');
-    phoneInputs.forEach(input => {
-        input.addEventListener('input', function(e) {
-            // Allow only numbers and dash
-            this.value = this.value.replace(/[^0-9-]/g, '');
         });
     });
     
-    // Amount Validation based on Category
-    const categorySelect = document.getElementById('category');
-    const amountInput = document.getElementById('amount');
+    lazyImages.forEach(image => imageObserver.observe(image));
+});
+
+// ===== Sponsor Form Validation and Features =====
+const sponsorForm = document.getElementById('sponsorForm');
+
+if (sponsorForm) {
+    // Package Selection and Amount Display
+    const packageRadios = document.querySelectorAll('input[name="package"]');
+    const amountDisplay = document.getElementById('amountDisplay');
     
-    categorySelect.addEventListener('change', function() {
-        const category = this.value;
-        let minAmount = 300;
-        
-        switch(category) {
-            case '3km':
-                minAmount = 300;
-                amountInput.value = 300;
-                break;
-            case '5km':
-                minAmount = 400;
-                amountInput.value = 400;
-                break;
-            case '10km':
-                minAmount = 500;
-                amountInput.value = 500;
-                break;
-        }
-        
-        amountInput.min = minAmount;
+    packageRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const amount = this.dataset.amount;
+            const packageName = this.parentElement.querySelector('.package-badge').textContent;
+            
+            if (amount) {
+                amountDisplay.innerHTML = `
+                    <div style="font-size: 1.1rem; margin-bottom: 0.5rem;">แพคเกจที่เลือก</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; margin: 0.5rem 0;">${packageName}</div>
+                    <div style="font-size: 2.5rem; font-weight: 800; margin-top: 0.5rem;">฿${parseInt(amount).toLocaleString()}</div>
+                `;
+            }
+        });
     });
     
+    // Package Card Selection Visual Feedback
+    const packageCards = document.querySelectorAll('.package-card');
+    packageCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Remove selection from all cards
+            packageCards.forEach(c => c.classList.remove('selected'));
+            
+            // Add selection to clicked card
+            this.classList.add('selected');
+            
+            // Check the radio button
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+    
+    // Image Preview for Slip
+    const slipImageInput = document.getElementById('slipImage');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    if (slipImageInput && imagePreview) {
+        slipImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file) {
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ไฟล์ใหญ่เกินไป',
+                        text: 'ไฟล์มีขนาดใหญ่เกิน 5 MB กรุณาเลือกไฟล์ใหม่',
+                        confirmButtonText: 'ตกลง',
+                        confirmButtonColor: '#2d6a5f'
+                    });
+                    this.value = '';
+                    imagePreview.innerHTML = '';
+                    imagePreview.classList.remove('show');
+                    return;
+                }
+                
+                // Show preview for images
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        imagePreview.innerHTML = `
+                            <p style="color: var(--primary-color); font-weight: 600; margin-bottom: 0.5rem;">
+                                ตัวอย่างสลิปที่แนบ:
+                            </p>
+                            <img src="${e.target.result}" alt="สลิปการโอนเงิน">
+                        `;
+                        imagePreview.classList.add('show');
+                    };
+                    
+                    reader.readAsDataURL(file);
+                } else if (file.type === 'application/pdf') {
+                    imagePreview.innerHTML = `
+                        <p style="color: var(--primary-color); font-weight: 600;">
+                            ✓ ไฟล์ PDF: ${file.name}
+                        </p>
+                    `;
+                    imagePreview.classList.add('show');
+                }
+            } else {
+                imagePreview.innerHTML = '';
+                imagePreview.classList.remove('show');
+            }
+        });
+    }
+    
+    // Phone Number Validation
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Allow only numbers and dash
+            this.value = this.value.replace(/[^0-9-]/g, '');
+        });
+    }
+    
     // Form Submission
-    donateForm.addEventListener('submit', function(e) {
+    sponsorForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Validate ID Card (13 digits)
-        const idCard = document.getElementById('idCard').value;
-        if (idCard.length !== 13) {
-            alert('กรุณากรอกเลขบัตรประชาชนให้ครบ 13 หลัก');
-            document.getElementById('idCard').focus();
+        // Validate Organization Name
+        const orgName = document.getElementById('organizationName').value.trim();
+        if (orgName.length < 3) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณากรอกข้อมูล',
+                text: 'กรุณากรอกชื่อหน่วยงานให้ถูกต้อง',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
+            document.getElementById('organizationName').focus();
+            return;
+        }
+        
+        // Validate Address
+        const address = document.getElementById('address').value.trim();
+        if (address.length < 10) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณากรอกข้อมูล',
+                text: 'กรุณากรอกที่อยู่ให้ครบถ้วน',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
+            document.getElementById('address').focus();
+            return;
+        }
+        
+        // Validate Package Selection
+        const selectedPackage = document.querySelector('input[name="package"]:checked');
+        if (!selectedPackage) {
+            Swal.fire({
+                icon: 'info',
+                title: 'กรุณาเลือกแพคเกจ',
+                text: 'กรุณาเลือกแพคเกจสนับสนุนที่ต้องการ',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
+            window.scrollTo({ top: document.querySelector('.sponsor-packages').offsetTop - 100, behavior: 'smooth' });
+            return;
+        }
+        
+        // Validate Contact Name
+        const contactName = document.getElementById('contactName').value.trim();
+        if (contactName.length < 3) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณากรอกข้อมูล',
+                text: 'กรุณากรอกชื่อผู้ติดต่อให้ถูกต้อง',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
+            document.getElementById('contactName').focus();
             return;
         }
         
         // Validate Phone Number
         const phone = document.getElementById('phone').value;
         if (phone.length < 9 || phone.length > 10) {
-            alert('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง');
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณากรอกข้อมูล',
+                text: 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (9-10 หลัก)',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
             document.getElementById('phone').focus();
-            return;
-        }
-        
-        // Validate Emergency Phone
-        const emergencyPhone = document.getElementById('emergencyPhone').value;
-        if (emergencyPhone.length < 9 || emergencyPhone.length > 10) {
-            alert('กรุณากรอกเบอร์โทรผู้ติดต่อฉุกเฉินให้ถูกต้อง');
-            document.getElementById('emergencyPhone').focus();
-            return;
-        }
-        
-        // Validate Amount
-        const category = document.getElementById('category').value;
-        const amount = parseInt(document.getElementById('amount').value);
-        let requiredAmount = 0;
-        
-        switch(category) {
-            case '3km':
-                requiredAmount = 300;
-                break;
-            case '5km':
-                requiredAmount = 400;
-                break;
-            case '10km':
-                requiredAmount = 500;
-                break;
-        }
-        
-        if (amount < requiredAmount) {
-            alert(`จำนวนเงินต้องไม่น้อยกว่า ${requiredAmount} บาท สำหรับประเภทที่เลือก`);
-            document.getElementById('amount').focus();
-            return;
-        }
-        
-        // Check if file is uploaded
-        const slipFile = document.getElementById('slipImage').files[0];
-        if (!slipFile) {
-            alert('กรุณาแนบสลิปการโอนเงิน');
-            document.getElementById('slipImage').focus();
             return;
         }
         
         // Check checkboxes
         if (!document.getElementById('acceptTerms').checked) {
-            alert('กรุณายอมรับข้อกำหนดและเงื่อนไข');
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณายอมรับเงื่อนไข',
+                text: 'กรุณายอมรับข้อกำหนดและเงื่อนไข',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
             return;
         }
         
         if (!document.getElementById('acceptPDPA').checked) {
-            alert('กรุณายินยอมให้เก็บรวบรวมข้อมูลส่วนบุคคล');
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณายอมรับเงื่อนไข',
+                text: 'กรุณายินยอมให้เก็บรวบรวมข้อมูลส่วนบุคคล',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
             return;
         }
         
-        // If all validations pass
-        if (confirm('ยืนยันการส่งข้อมูลลงทะเบียน?')) {
-            // Here you would normally send data to server
-            // For now, we'll just show success message
-            
-            alert('✓ ส่งข้อมูลลงทะเบียนเรียบร้อยแล้ว!\n\nคุณจะได้รับอีเมลยืนยันภายใน 24 ชั่วโมง');
-            
-            // Reset form
-            donateForm.reset();
-            imagePreview.innerHTML = '';
-            imagePreview.classList.remove('show');
-            
-            // Redirect to home page after 2 seconds
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 2000);
-        }
+        // Get selected package info
+        const packageName = selectedPackage.parentElement.querySelector('.package-badge').textContent;
+        const packageAmount = selectedPackage.dataset.amount;
+        
+        // Confirmation dialog
+        Swal.fire({
+            title: 'ยืนยันการส่งข้อมูล?',
+            html: `
+                <div style="text-align: left; padding: 1rem;">
+                    <p><strong>หน่วยงาน:</strong> ${orgName}</p>
+                    <p><strong>แพคเกจ:</strong> ${packageName}</p>
+                    <p><strong>จำนวนเงิน:</strong> ฿${parseInt(packageAmount).toLocaleString()}</p>
+                    <p><strong>ผู้ติดต่อ:</strong> ${contactName}</p>
+                    <p><strong>เบอร์โทร:</strong> ${phone}</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยัน',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#2d6a5f',
+            cancelButtonColor: '#6b7280'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'กำลังส่งข้อมูล...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Simulate sending data (replace with actual API call)
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ส่งข้อมูลสำเร็จ!',
+                        html: `
+                            <p>ขอบคุณสำหรับการสนับสนุน</p>
+                            <p><strong>แพคเกจ:</strong> ${packageName}</p>
+                            <p><strong>จำนวน:</strong> ฿${parseInt(packageAmount).toLocaleString()}</p>
+                            <p style="margin-top: 1rem; color: #2d6a5f;">ทีมงานจะติดต่อกลับภายใน 2-3 วันทำการ</p>
+                        `,
+                        confirmButtonText: 'ตกลง',
+                        confirmButtonColor: '#2d6a5f'
+                    }).then(() => {
+                        // Reset form
+                        sponsorForm.reset();
+                        amountDisplay.innerHTML = '';
+                        packageCards.forEach(c => c.classList.remove('selected'));
+                        imagePreview.innerHTML = '';
+                        imagePreview.classList.remove('show');
+                        
+                        // Clear localStorage
+                        const formInputs = sponsorForm.querySelectorAll('input:not([type="file"]):not([type="checkbox"]):not([type="radio"]), select, textarea');
+                        formInputs.forEach(input => {
+                            localStorage.removeItem(`kpi_sponsor_${input.id}`);
+                        });
+                        localStorage.removeItem('kpi_sponsor_package');
+                        
+                        // Redirect to home page
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1500);
+                    });
+                }, 1500);
+            }
+        });
     });
 }
 
@@ -234,33 +346,45 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 });
 
 // ===== Auto-save Form Data to LocalStorage =====
-if (donateForm) {
+if (sponsorForm) {
     // Save form data on input
-    const formInputs = donateForm.querySelectorAll('input:not([type="file"]):not([type="checkbox"]), select, textarea');
+    const formInputs = sponsorForm.querySelectorAll('input:not([type="file"]):not([type="checkbox"]):not([type="radio"]), select, textarea');
     
     formInputs.forEach(input => {
         // Load saved data on page load
-        const savedValue = localStorage.getItem(`kpi_run_${input.id}`);
+        const savedValue = localStorage.getItem(`kpi_sponsor_${input.id}`);
         if (savedValue && input.value === '') {
             input.value = savedValue;
         }
         
         // Save data on change
         input.addEventListener('change', function() {
-            localStorage.setItem(`kpi_run_${input.id}`, this.value);
+            localStorage.setItem(`kpi_sponsor_${input.id}`, this.value);
         });
     });
     
-    // Clear localStorage on successful submission
-    donateForm.addEventListener('submit', function() {
-        formInputs.forEach(input => {
-            localStorage.removeItem(`kpi_run_${input.id}`);
+    // Save and restore package selection
+    const savedPackage = localStorage.getItem('kpi_sponsor_package');
+    if (savedPackage) {
+        const radio = document.querySelector(`input[name="package"][value="${savedPackage}"]`);
+        if (radio) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change'));
+            radio.closest('.package-card').classList.add('selected');
+        }
+    }
+    
+    const packageRadios = document.querySelectorAll('input[name="package"]');
+    packageRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                localStorage.setItem('kpi_sponsor_package', this.value);
+            }
         });
     });
 }
 
 // ===== Mobile Menu Toggle (for future implementation) =====
-// This is a placeholder for responsive menu functionality
 const menuToggle = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.nav');
 
