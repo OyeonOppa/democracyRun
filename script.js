@@ -44,10 +44,91 @@ document.addEventListener('DOMContentLoaded', function() {
     lazyImages.forEach(image => imageObserver.observe(image));
 });
 
+// ===== Configuration =====
+// ใส่ URL ของ Google Apps Script Web App ที่นี่
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFIKQk6PmpMIEvP-fPXJaq_U4G2YZ4kCGbPPPwP9zK5qHLgbWb_7rh2FCUhodK-bBHIw/exec';
+
 // ===== Sponsor Form Validation and Features =====
 const sponsorForm = document.getElementById('sponsorForm');
 
 if (sponsorForm) {
+    // Logo Option Toggle
+    const logoOptions = document.querySelectorAll('input[name="logoOption"]');
+    const logoUploadSection = document.getElementById('logoUploadSection');
+    const logoFileInput = document.getElementById('logoFile');
+    const logoPreview = document.getElementById('logoPreview');
+    let logoFileData = null;
+    
+    logoOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            if (this.value === 'with-logo') {
+                logoUploadSection.style.display = 'block';
+                logoFileInput.required = true;
+            } else {
+                logoUploadSection.style.display = 'none';
+                logoFileInput.required = false;
+                logoFileInput.value = '';
+                logoPreview.innerHTML = '';
+                logoPreview.classList.remove('show');
+                logoFileData = null;
+            }
+        });
+    });
+    
+    // Logo File Preview
+    if (logoFileInput && logoPreview) {
+        logoFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file) {
+                // Check file size (10MB limit for logo)
+                if (file.size > 10 * 1024 * 1024) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ไฟล์ใหญ่เกินไป',
+                        text: 'ไฟล์มีขนาดใหญ่เกิน 10 MB กรุณาเลือกไฟล์ใหม่',
+                        confirmButtonText: 'ตกลง',
+                        confirmButtonColor: '#2d6a5f'
+                    });
+                    this.value = '';
+                    logoPreview.innerHTML = '';
+                    logoPreview.classList.remove('show');
+                    logoFileData = null;
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    logoFileData = e.target.result;
+                    
+                    // Show preview based on file type
+                    if (file.type.startsWith('image/')) {
+                        logoPreview.innerHTML = `
+                            <p style="color: var(--primary-color); font-weight: 600; margin-bottom: 0.5rem;">
+                                ตัวอย่างโลโก้:
+                            </p>
+                            <img src="${e.target.result}" alt="โลโก้" style="max-height: 200px;">
+                        `;
+                    } else {
+                        logoPreview.innerHTML = `
+                            <p style="color: var(--primary-color); font-weight: 600;">
+                                ✓ ไฟล์: ${file.name} (${(file.size / 1024).toFixed(2)} KB)
+                            </p>
+                        `;
+                    }
+                    logoPreview.classList.add('show');
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                logoPreview.innerHTML = '';
+                logoPreview.classList.remove('show');
+                logoFileData = null;
+            }
+        });
+    }
+    
     // Package Selection and Amount Display
     const packageRadios = document.querySelectorAll('input[name="package"]');
     const amountDisplay = document.getElementById('amountDisplay');
@@ -89,6 +170,7 @@ if (sponsorForm) {
     // Image Preview for Slip
     const slipImageInput = document.getElementById('slipImage');
     const imagePreview = document.getElementById('imagePreview');
+    let slipFileData = null;
     
     if (slipImageInput && imagePreview) {
         slipImageInput.addEventListener('change', function(e) {
@@ -107,6 +189,7 @@ if (sponsorForm) {
                     this.value = '';
                     imagePreview.innerHTML = '';
                     imagePreview.classList.remove('show');
+                    slipFileData = null;
                     return;
                 }
                 
@@ -115,6 +198,7 @@ if (sponsorForm) {
                     const reader = new FileReader();
                     
                     reader.onload = function(e) {
+                        slipFileData = e.target.result; // เก็บ Base64 data
                         imagePreview.innerHTML = `
                             <p style="color: var(--primary-color); font-weight: 600; margin-bottom: 0.5rem;">
                                 ตัวอย่างสลิปที่แนบ:
@@ -126,16 +210,24 @@ if (sponsorForm) {
                     
                     reader.readAsDataURL(file);
                 } else if (file.type === 'application/pdf') {
-                    imagePreview.innerHTML = `
-                        <p style="color: var(--primary-color); font-weight: 600;">
-                            ✓ ไฟล์ PDF: ${file.name}
-                        </p>
-                    `;
-                    imagePreview.classList.add('show');
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        slipFileData = e.target.result; // เก็บ Base64 data
+                        imagePreview.innerHTML = `
+                            <p style="color: var(--primary-color); font-weight: 600;">
+                                ✓ ไฟล์ PDF: ${file.name}
+                            </p>
+                        `;
+                        imagePreview.classList.add('show');
+                    };
+                    
+                    reader.readAsDataURL(file);
                 }
             } else {
                 imagePreview.innerHTML = '';
                 imagePreview.classList.remove('show');
+                slipFileData = null;
             }
         });
     }
@@ -195,6 +287,33 @@ if (sponsorForm) {
             return;
         }
         
+        // Validate Logo Option
+        const selectedLogoOption = document.querySelector('input[name="logoOption"]:checked');
+        if (!selectedLogoOption) {
+            Swal.fire({
+                icon: 'info',
+                title: 'กรุณาเลือกตัวเลือก',
+                text: 'กรุณาเลือกว่าจะใส่โลโก้หรือไม่',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
+            window.scrollTo({ top: document.querySelector('.logo-option-group').offsetTop - 100, behavior: 'smooth' });
+            return;
+        }
+        
+        // Validate Logo File if "with-logo" is selected
+        if (selectedLogoOption.value === 'with-logo' && !logoFileData) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณาแนบไฟล์โลโก้',
+                text: 'กรุณาแนบไฟล์โลโก้ของคุณ',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
+            document.getElementById('logoFile').focus();
+            return;
+        }
+        
         // Validate Contact Name
         const contactName = document.getElementById('contactName').value.trim();
         if (contactName.length < 3) {
@@ -249,6 +368,8 @@ if (sponsorForm) {
         // Get selected package info
         const packageName = selectedPackage.parentElement.querySelector('.package-badge').textContent;
         const packageAmount = selectedPackage.dataset.amount;
+        const packageType = selectedPackage.value;
+        const email = document.getElementById('email').value;
         
         // Confirmation dialog
         Swal.fire({
@@ -273,14 +394,41 @@ if (sponsorForm) {
                 // Show loading
                 Swal.fire({
                     title: 'กำลังส่งข้อมูล...',
+                    html: 'กรุณารอสักครู่',
                     allowOutsideClick: false,
                     didOpen: () => {
                         Swal.showLoading();
                     }
                 });
                 
-                // Simulate sending data (replace with actual API call)
-                setTimeout(() => {
+                // เตรียมข้อมูลที่จะส่ง
+                const formData = {
+                    organizationName: orgName,
+                    address: address,
+                    packageType: packageType,
+                    amount: packageAmount,
+                    contactName: contactName,
+                    phone: phone,
+                    email: email,
+                    transferDate: document.getElementById('transferDate') ? document.getElementById('transferDate').value : '',
+                    logoOption: selectedLogoOption.value, // เพิ่ม logo option
+                    logoFile: logoFileData, // Base64 encoded logo file (ถ้ามี)
+                    slipFile: slipFileData, // Base64 encoded slip file
+                    timestamp: new Date().toISOString()
+                };
+                
+                // ส่งข้อมูลไปยัง Google Apps Script
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // สำคัญ! เพื่อให้ทำงานกับ Google Apps Script
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(() => {
+                    // เนื่องจากใช้ no-cors จะไม่ได้ response กลับมา
+                    // แต่ถือว่าส่งสำเร็จ
                     Swal.fire({
                         icon: 'success',
                         title: 'ส่งข้อมูลสำเร็จ!',
@@ -299,6 +447,7 @@ if (sponsorForm) {
                         packageCards.forEach(c => c.classList.remove('selected'));
                         imagePreview.innerHTML = '';
                         imagePreview.classList.remove('show');
+                        slipFileData = null;
                         
                         // Clear localStorage
                         const formInputs = sponsorForm.querySelectorAll('input:not([type="file"]):not([type="checkbox"]):not([type="radio"]), select, textarea');
@@ -312,7 +461,17 @@ if (sponsorForm) {
                             window.location.href = 'index.html';
                         }, 1500);
                     });
-                }, 1500);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'เกิดข้อผิดพลาด',
+                        text: 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+                        confirmButtonText: 'ตกลง',
+                        confirmButtonColor: '#2d6a5f'
+                    });
+                });
             }
         });
     });

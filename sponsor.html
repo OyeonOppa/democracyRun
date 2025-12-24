@@ -152,6 +152,45 @@
                         </div>
                     </div>
 
+
+                    <!-- ตัวเลือกการใส่โลโก้ -->
+                    <div class="form-section-group">
+                        <h3 class="section-heading">การใส่โลโก้</h3>
+                        
+                        <div class="logo-option-group">
+                            <label class="radio-card">
+                                <input type="radio" name="logoOption" value="with-logo" required>
+                                <div class="radio-card-content">
+                                    <div class="radio-icon">📤</div>
+                                    <h4>ใส่โลโก้ตามแพคเกจ</h4>
+                                    <p>แนบไฟล์โลโก้เพื่อนำไปใช้ตามสิทธิประโยชน์แพคเกจ</p>
+                                </div>
+                            </label>
+
+                            <label class="radio-card">
+                                <input type="radio" name="logoOption" value="no-logo" required>
+                                <div class="radio-card-content">
+                                    <div class="radio-icon">🚫</div>
+                                    <h4>ไม่ใส่โลโก้</h4>
+                                    <p>ไม่ต้องการให้แสดงโลโก้ในงาน</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- ช่องอัพโหลดโลโก้ (แสดงเมื่อเลือก "ใส่โลโก้") -->
+                        <div id="logoUploadSection" class="logo-upload-section" style="display: none;">
+                            <div class="form-group">
+                                <label for="logoFile">แนบไฟล์โลโก้ <span class="required">*</span></label>
+                                <input type="file" id="logoFile" name="logoFile" accept=".ai,.eps,.svg,.png,.jpg,.jpeg,.pdf">
+                                <small>รองรับไฟล์: AI, EPS, SVG, PNG, JPG, PDF (ขนาดไม่เกิน 10 MB)</small>
+                                <small style="display: block; margin-top: 0.5rem; color: #c9964d;">
+                                    <strong>แนะนำ:</strong> ไฟล์ .AI หรือ .EPS สำหรับคุณภาพสูงสุด
+                                </small>
+                            </div>
+                            <div id="logoPreview" class="image-preview"></div>
+                        </div>
+                    </div>
+
                     <!-- ข้อมูลผู้ติดต่อ -->
                     <div class="form-section-group">
                         <h3 class="section-heading">ข้อมูลผู้ติดต่อ</h3>
@@ -172,7 +211,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- ข้อมูลการชำระเงิน -->
                     <div class="form-section-group">
                         <h3 class="section-heading">ข้อมูลการชำระเงิน</h3>
@@ -264,5 +302,4 @@
 
     <script src="script.js"></script>
 </body>
-
 </html>

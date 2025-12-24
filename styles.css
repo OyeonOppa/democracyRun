@@ -656,6 +656,107 @@ section {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* ===== Logo Option Cards ===== */
+.logo-option-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.radio-card {
+    position: relative;
+    cursor: pointer;
+    display: block;
+}
+
+.radio-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.radio-card-content {
+    background: var(--white);
+    border: 2px solid var(--border-color);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.radio-card:hover .radio-card-content {
+    border-color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(45, 106, 95, 0.15);
+}
+
+.radio-card input[type="radio"]:checked + .radio-card-content {
+    border-color: var(--primary-color);
+    background: linear-gradient(to bottom, rgba(45, 106, 95, 0.05), rgba(255, 255, 255, 1));
+    box-shadow: 0 8px 20px rgba(45, 106, 95, 0.2);
+}
+
+.radio-card input[type="radio"]:checked + .radio-card-content::after {
+    content: '✓';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 30px;
+    height: 30px;
+    background: var(--gradient-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    animation: checkmark 0.4s ease;
+}
+
+.radio-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.radio-card-content h4 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.radio-card-content p {
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.logo-upload-section {
+    margin-top: 2rem;
+    padding: 2rem;
+    background: var(--light-color);
+    border-radius: 15px;
+    border: 2px dashed var(--border-color);
+    animation: slideDown 0.4s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* ===== Sponsor Packages ===== */
 .package-subtitle {
     text-align: center;
