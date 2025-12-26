@@ -300,6 +300,30 @@ if (sponsorForm) {
         });
     }
     
+    // Tax ID Formatting
+    const taxIdInput = document.getElementById('taxId');
+    if (taxIdInput) {
+        taxIdInput.addEventListener('input', function(e) {
+            // Remove all non-numeric characters
+            let value = this.value.replace(/[^0-9]/g, '');
+            
+            // Limit to 13 digits
+            if (value.length > 13) {
+                value = value.substring(0, 13);
+            }
+            
+            // Format as 0-0000-00000-00-0
+            if (value.length > 0) {
+                let formatted = value[0];
+                if (value.length > 1) formatted += '-' + value.substring(1, 5);
+                if (value.length > 5) formatted += '-' + value.substring(5, 10);
+                if (value.length > 10) formatted += '-' + value.substring(10, 12);
+                if (value.length > 12) formatted += '-' + value.substring(12, 13);
+                this.value = formatted;
+            }
+        });
+    }
+    
     // Form Submission
     sponsorForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -315,6 +339,21 @@ if (sponsorForm) {
                 confirmButtonColor: '#2d6a5f'
             });
             document.getElementById('organizationName').focus();
+            return;
+        }
+        
+        // Validate Tax ID
+        const taxId = document.getElementById('taxId').value.trim();
+        const taxIdDigits = taxId.replace(/[^0-9]/g, ''); // เอาเฉพาะตัวเลข
+        if (taxIdDigits.length !== 13) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณากรอกข้อมูล',
+                text: 'กรุณากรอกเลขประจำตัวผู้เสียภาษีให้ครบ 13 หลัก',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
+            document.getElementById('taxId').focus();
             return;
         }
         
@@ -389,7 +428,8 @@ if (sponsorForm) {
         
         // Validate Phone Number
         const phone = document.getElementById('phone').value;
-        if (phone.length < 9 || phone.length > 10) {
+        const phoneDigits = phone.replace(/[^0-9]/g, ''); // เอาเฉพาะตัวเลข
+        if (phoneDigits.length < 9 || phoneDigits.length > 10) {
             Swal.fire({
                 icon: 'warning',
                 title: 'กรุณากรอกข้อมูล',
@@ -421,6 +461,19 @@ if (sponsorForm) {
                 confirmButtonText: 'ตกลง',
                 confirmButtonColor: '#2d6a5f'
             });
+            return;
+        }
+        
+        // Validate Slip File (required)
+        if (!slipFileData) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณาแนบสลิปโอนเงิน',
+                text: 'กรุณาแนบสลิปการโอนเงิน (บังคับแนบ)',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#2d6a5f'
+            });
+            document.getElementById('slipImage').focus();
             return;
         }
         
@@ -463,6 +516,7 @@ if (sponsorForm) {
                 // เตรียมข้อมูลที่จะส่ง
                 const formData = {
                     organizationName: orgName,
+                    taxId: taxId,
                     address: address,
                     packageType: packageType,
                     amount: packageAmount,

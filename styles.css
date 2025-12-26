@@ -427,6 +427,78 @@ section {
     margin-bottom: 3rem;
 }
 
+/* Event Info Box */
+.event-info-box {
+    background: linear-gradient(135deg, #2d6a5f 0%, #3d8b7c 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin: 2rem 0;
+    box-shadow: 0 10px 30px rgba(45, 106, 95, 0.2);
+}
+
+.event-info-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 0.5rem;
+}
+
+.event-info-content {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 1.5rem;
+}
+
+.event-info-content p {
+    margin: 0.75rem 0;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.event-info-content strong {
+    color: #c9964d;
+}
+
+.event-highlight {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 1.5rem !important;
+    padding-top: 1rem;
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.deadline-box {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 1.5rem;
+    border-radius: 15px;
+    border-left: 4px solid #c9964d;
+}
+
+.deadline-box h4 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.deadline-box p {
+    margin: 0.5rem 0;
+}
+
+.highlight-date {
+    color: #c9964d;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.note-text {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: 1rem !important;
+    font-style: italic;
+}
+
 .form-section-group {
     margin-bottom: 3rem;
     padding-bottom: 2rem;

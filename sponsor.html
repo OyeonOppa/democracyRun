@@ -11,35 +11,38 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <h1>KPI Democracy Run</h1>
-                </div>
-                <nav class="nav">
-                    <a href="index.html">หน้าแรก</a>
-                    <a href="index.html#about">เกี่ยวกับงาน</a>
-                    <a href="index.html#categories">ประเภทการแข่งขัน</a>
-                    <a href="index.html#news">ข่าวสาร</a>
-                </nav>
-            </div>
-        </div>
-    </header>
+
 
     <!-- Form Section -->
     <section class="form-section">
         <div class="container">
             <div class="form-container">
-                <h2 class="form-title">ฟอร์มสนับสนุนงาน</h2>
+                <h2 class="form-title">สนับสนุนงาน</h2>
                 <p class="form-subtitle">สำหรับหน่วยงานที่ต้องการเป็นสปอนเซอร์งาน KPI Democracy Run 2026</p>
 
+                <!-- ข้อมูลงานวิ่ง -->
+                <div class="event-info-box">
+                    <h3 class="event-info-title">📅 ข้อมูลงานวิ่ง</h3>
+                    <div class="event-info-content">
+                        <p><strong>ชื่องาน:</strong> KPI Democracy Run 2026</p>
+                        <p><strong>วันที่จัดงาน:</strong> วันเสาร์ที่ 15 กุมภาพันธ์ 2569</p>
+                        <p><strong>สถานที่:</strong> กรุงเทพฯ</p>
+                        <p><strong>เวลาเริ่มงาน:</strong> N/A</p>
+                        <p class="event-highlight">🎯 กิจกรรมเพื่อสิ่งแวดล้อมของสถาบันพระปกเกล้า ในการสร้างอนาคตที่ยั่งยืนของประเทศ</p>
+                    </div>
+                    
+                    <div class="deadline-box">
+                        <h4>⏰ กำหนดเวลาสำคัญ</h4>
+                        <p><strong>กำหนดเวลาโอนเงิน:</strong> <span class="highlight-date">รออัปเดตกำหนดการ</span></p>
+                        <p class="note-text">* ทีมงานจะติดต่อกลับภายใน 2-3 วันทำการหลังจากได้รับข้อมูล</p>
+                    </div>
+                </div>
+
                 <!-- Poster Display -->
-                <div class="sponsor-poster lazy-loading" id="posterSection">
+                <div class="sponsor-poster" id="posterSection">
                     <img 
-                        data-src="/src/sponsorship.jpg" 
+                        src="/src/sponsorship.jpg" 
                         alt="KPI Democracy Run 2026 - Sponsorship Packages"
-                        class="lazy-image"
                     />
                 </div>
 
@@ -51,6 +54,12 @@
                         <div class="form-group">
                             <label for="organizationName">ชื่อหน่วยงานสนับสนุน <span class="required">*</span></label>
                             <input type="text" id="organizationName" name="organizationName" placeholder="ชื่อบริษัท/องค์กร" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="taxId">เลขประจำตัวผู้เสียภาษี <span class="required">*</span></label>
+                            <input type="text" id="taxId" name="taxId" placeholder="0-0000-00000-00-0" maxlength="17" required>
+                            <small>รูปแบบ: 0-0000-00000-00-0 (13 หลัก)</small>
                         </div>
 
                         <div class="form-group">
@@ -152,7 +161,6 @@
                         </div>
                     </div>
 
-
                     <!-- ตัวเลือกการใส่โลโก้ -->
                     <div class="form-section-group">
                         <h3 class="section-heading">การใส่โลโก้</h3>
@@ -163,7 +171,7 @@
                                 <div class="radio-card-content">
                                     <div class="radio-icon">📤</div>
                                     <h4>ใส่โลโก้ตามแพคเกจ</h4>
-                                    <p>แนบไฟล์โลโก้เพื่อนำไปใช้ตามสิทธิประโยชน์แพคเกจ</p>
+                                    <p>แนบไฟล์โลโก้เพื่อนำไปใช้ตามสิทธิประโยชน์ของแพคเกจ</p>
                                 </div>
                             </label>
 
@@ -211,6 +219,7 @@
                             </div>
                         </div>
                     </div>
+
                     <!-- ข้อมูลการชำระเงิน -->
                     <div class="form-section-group">
                         <h3 class="section-heading">ข้อมูลการชำระเงิน</h3>
@@ -232,9 +241,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="slipImage">แนบสลิปโอนเงิน</label>
-                            <input type="file" id="slipImage" name="slipImage" accept="image/*,.pdf">
-                            <small>ไฟล์ภาพ (JPG, PNG) หรือ PDF ขนาดไม่เกิน 5 MB (สามารถแนบภายหลังได้)</small>
+                            <label for="slipImage">แนบสลิปโอนเงิน <span class="required">*</span></label>
+                            <input type="file" id="slipImage" name="slipImage" accept="image/*,.pdf" required>
+                            <small>ไฟล์ภาพ (JPG, PNG) หรือ PDF ขนาดไม่เกิน 5 MB <strong class="required">*บังคับแนบ</strong></small>
                         </div>
 
                         <div id="imagePreview" class="image-preview"></div>
@@ -300,6 +309,7 @@
         </div>
     </footer>
 
+    <!-- JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
