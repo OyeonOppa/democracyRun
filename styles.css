@@ -440,12 +440,13 @@ section {
 .event-info-title {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.4);
     padding-bottom: 0.5rem;
+    color: #ffffff;
 }
 
 .event-info-content {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     padding: 1.5rem;
     border-radius: 15px;
     margin-bottom: 1.5rem;
@@ -455,10 +456,12 @@ section {
     margin: 0.75rem 0;
     font-size: 1rem;
     line-height: 1.6;
+    color: #ffffff;
 }
 
 .event-info-content strong {
-    color: #c9964d;
+    color: #fef3c7;
+    font-weight: 700;
 }
 
 .event-highlight {
@@ -467,36 +470,43 @@ section {
     font-weight: 700;
     margin-top: 1.5rem !important;
     padding-top: 1rem;
-    border-top: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid rgba(255, 255, 255, 0.4);
+    color: #fef3c7;
 }
 
 .deadline-box {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.2);
     padding: 1.5rem;
     border-radius: 15px;
-    border-left: 4px solid #c9964d;
+    border-left: 4px solid #fbbf24;
 }
 
 .deadline-box h4 {
     margin-bottom: 1rem;
     font-size: 1.2rem;
+    color: #ffffff;
 }
 
 .deadline-box p {
     margin: 0.5rem 0;
+    color: #ffffff;
 }
 
 .highlight-date {
-    color: #c9964d;
+    color: #fef3c7;
     font-weight: 700;
     font-size: 1.1rem;
+    background: rgba(251, 191, 36, 0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
 }
 
 .note-text {
     font-size: 0.9rem;
-    opacity: 0.9;
+    opacity: 0.95;
     margin-top: 1rem !important;
     font-style: italic;
+    color: #e5e7eb;
 }
 
 .form-section-group {
@@ -1001,49 +1011,20 @@ section {
 }
 
 .package-price {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
     font-weight: 800;
     color: var(--primary-color);
-    margin: 0.5rem 0 1.5rem;
+    margin: 0.5rem 0 1rem;
     letter-spacing: -0.5px;
 }
 
-.package-benefits {
-    list-style: none;
-    text-align: left;
+.package-note {
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-style: italic;
     margin: 0;
-    padding: 0;
-    flex-grow: 1;
-    font-size: 0.85rem;
-    line-height: 1.5;
-}
-
-.package-benefits li {
-    padding: 0.6rem 0;
-    color: var(--text-color);
-    border-bottom: 1px solid var(--border-color);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.4rem;
-}
-
-.package-benefits li:hover {
-    background: rgba(45, 106, 95, 0.04);
-    padding-left: 0.5rem;
-}
-
-.package-benefits li::before {
-    content: '•';
-    color: var(--primary-color);
-    font-weight: bold;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-    margin-top: -0.15rem;
-}
-
-.package-benefits li:last-child {
-    border-bottom: none;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
 }
 
 .amount-display {
